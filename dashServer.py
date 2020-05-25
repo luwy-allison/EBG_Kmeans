@@ -1,4 +1,4 @@
-## dash latest(0526 03:04)
+## dash latest(0526 04:19)
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -119,7 +119,7 @@ def update_dendrogram(condition,startTrial,endTrial,threshold):
     ### dendrogram
     X=np.asarray(data.ForK_dropna)
     fig = ff.create_dendrogram(X,color_threshold=threshold)
-    fig.update_layout(width=1000, height=800, font={'size':8})
+    fig.update_layout(width=1000, height=600, font={'size':8})
     return fig
 
 @app.callback(
@@ -147,9 +147,9 @@ def update_hkCluster(condition,startTrial,endTrial,hkChoose):
     clusterBehavior=[["more.buy","more.no trade","more.sell","equal.buy","equal.no trade","equal.sell","less.buy","less.no trade","less.sell"]]
     for i in range(hkChoose):
         clusterBehavior.append([0,0,0,0,0,0,0,0,0])
-    memberCount=[0]*kChoose
+    memberCount=[0]*hkChoose
     for i in range(len(data.label)):
-        for k in range(kChoose):
+        for k in range(hkChoose):
             if data.label[i][19] == k:
                 memberCount[k]+=1
                 for col in range(1,10):
