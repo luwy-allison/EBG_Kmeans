@@ -109,20 +109,6 @@ app.layout= html.Div([
 ])
 
 @app.callback(
-    Output(component_id="dendrogram",component_property='figure'),
-    [Input(component_id='condition',component_property='value'),
-     Input(component_id='startTrial',component_property='value'),
-     Input(component_id='endTrial',component_property='value'),
-     Input(component_id='threshold',component_property='value')])
-def update_dendrogram(condition,startTrial,endTrial,threshold):
-    data = Data(condition,startTrial,endTrial)
-    ### dendrogram
-    X=np.asarray(data.ForK_dropna)
-    fig = ff.create_dendrogram(X,color_threshold=threshold)
-    fig.update_layout(width=1000, height=600, font={'size':8})
-    return fig
-
-@app.callback(
     [Output(component_id='hkClusterBarPlot',component_property='children'),
      Output(component_id='hkDataSummary',component_property='children')],
     [Input(component_id='condition',component_property='value'),
@@ -193,7 +179,21 @@ def update_hkCluster(condition,startTrial,endTrial,hkChoose):
         fig_list.append(dcc.Graph(figure=fig))
     
     return fig_list,table_list
-
+    
+@app.callback(
+    Output(component_id="dendrogram",component_property='figure'),
+    [Input(component_id='condition',component_property='value'),
+     Input(component_id='startTrial',component_property='value'),
+     Input(component_id='endTrial',component_property='value'),
+     Input(component_id='threshold',component_property='value')])
+def update_dendrogram(condition,startTrial,endTrial,threshold):
+    data = Data(condition,startTrial,endTrial)
+    ### dendrogram
+    X=np.asarray(data.ForK_dropna)
+    fig = ff.create_dendrogram(X,color_threshold=threshold)
+    fig.update_layout(width=1000, height=600, font={'size':8})
+    return fig
+    
 @app.callback(
     Output(component_id="ElbowMethodPlot",component_property='figure'),
     [Input(component_id='condition',component_property='value'),
