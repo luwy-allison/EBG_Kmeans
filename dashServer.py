@@ -14,6 +14,7 @@ from sklearn.cluster import KMeans
 from sklearn import metrics
 from sklearn.cluster import AgglomerativeClustering
 import numpy as np
+from scipy.cluster import hierarchy
 from DataObject import*
 
 #"more.buy","more.no trade","more.sell","equal.buy","equal.no trade","equal.sell","less.buy","less.no trade","less.sell"
@@ -88,7 +89,7 @@ app.layout= html.Div([
                                                   'kchoose ',
                                                   dcc.Input(id='hkChoose', type='number', min=1, max=12, value=1),
                                                   html.Br(),html.Br(),
-                                                  'treshold ',
+                                                  'threshold ',
                                                   dcc.Input(id='threshold', type='number', min=0, max=10, value=1, step=0.01),
                                                   html.Br(),
                                                   html.Br(),
@@ -190,7 +191,7 @@ def update_dendrogram(condition,startTrial,endTrial,threshold):
     data = Data(condition,startTrial,endTrial)
     ### dendrogram
     X=np.asarray(data.ForK_dropna)
-    fig = ff.create_dendrogram(X,color_threshold=threshold)
+    fig = ff.create_dendrogram(X,color_threshold=threshold,linkagefun=lambda x: hierarchy.linkage(x, "ward"))
     fig.update_layout(width=1000, height=600, font={'size':8})
     return fig
     
