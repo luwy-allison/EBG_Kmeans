@@ -19,6 +19,7 @@ from lrtest import*
 
 #"more.buy","more.no trade","more.sell","equal.buy","equal.no trade","equal.sell","less.buy","less.no trade","less.sell"
 app = dash.Dash()
+server = app.server
 app.layout= html.Div([
     html.H2("EBG behavior data"),
     html.Div(style={'background-color':'#F2E9E7', 'text-align':'center'},
