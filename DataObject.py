@@ -4,11 +4,15 @@ import pandas as pd
 import os
 import csv
 import numpy as np
+import json
 
 class Data:
     
     def __init__(self, condition="", startTrial=1, endTrial=100):
-        allData=allSubjData()
+        with open('allSubjData.txt') as json_file:
+            allData = json.load(json_file)
+        allData = json.loads(allData)
+        # allData=allSubjData()
         self.wide = [["subj","more.buy","more.no trade","more.sell","equal.buy","equal.no trade","equal.sell","less.buy","less.no trade","less.sell"]] 
         # create self.wide
         if condition == "delta price":
@@ -198,18 +202,18 @@ class Data:
         self.ForK=self.ForK_pd.values.tolist()
 
                 
-def allSubjData():
-    subjDataList = []
-    path = "./CSV format data/"
-    fileList = os.listdir(path)
-    readP = []
-    for i in range(0,len(fileList)):
-        readP.append(path+fileList[i])
-    for f in readP[0:160]:
-        content = []
-        with open(f,"r") as csvfile:
-            rows = csv.reader(csvfile)
-            for row in rows:
-                content.append(row)
-        subjDataList.append(content)
-    return subjDataList
+# def allSubjData():
+    # subjDataList = []
+    # path = "./CSV format data/"
+    # fileList = os.listdir(path)
+    # readP = []
+    # for i in range(0,len(fileList)):
+        # readP.append(path+fileList[i])
+    # for f in readP[0:160]:
+        # content = []
+        # with open(f,"r") as csvfile:
+            # rows = csv.reader(csvfile)
+            # for row in rows:
+                # content.append(row)
+        # subjDataList.append(content)
+    # return subjDataList
