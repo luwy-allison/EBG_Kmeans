@@ -10,6 +10,7 @@ import math
 import pandas as pd
 import os
 import csv
+import json
 from sklearn.cluster import KMeans
 from sklearn import metrics
 from sklearn.cluster import AgglomerativeClustering
@@ -18,6 +19,11 @@ from DataObject import*
 from lrtest import*
 
 #"more.buy","more.no trade","more.sell","equal.buy","equal.no trade","equal.sell","less.buy","less.no trade","less.sell"
+## for generate subject checkList
+subjNumDictList=[]
+for n in range(1,161):
+    subjNumDictList.append(dict(label = n, value = n))
+
 app = dash.Dash()
 server = app.server
 app.layout= html.Div([
@@ -35,6 +41,7 @@ app.layout= html.Div([
                              label="delta Cash")
                  ]),
                  html.Div(children=[
+                     dcc.Store(id='specifiedDataObject'),
                      dcc.Tabs([
                          dcc.Tab(label="trial choose",
                                  children=[
@@ -49,10 +56,13 @@ app.layout= html.Div([
                                                                html.Font(children=['trial range']),
                                                                html.Br(),
                                                                html.Br(),
-                                                               'start__ ',dcc.Input(id='startTrial', type='number', min=1, max=100, value=1),
+                                                               'start ',dcc.Input(id='startTrial', type='number', min=1, max=100, value=1),
                                                                html.Br(),
                                                                html.Br(),
-                                                               'end__ ',dcc.Input(id='endTrial', type='number', min=1, max=100, value=100)
+                                                               'end ',dcc.Input(id='endTrial', type='number', min=1, max=100, value=100),
+                                                               html.Br(),
+                                                               html.Div(id='subjorpair'),
+                                                               dcc.Checklist(id='subjList',options=subjNumDictList,value=[n for n in range(1,161)])
                                                            ]),
                                                   html.Div(id='plot',
                                                            style={'width':'1200px',
@@ -189,15 +199,51 @@ app.layout= html.Div([
 ])
 
 @app.callback(
+    [Output(component_id='subjorpair',component_property='children'),
+     Output(component_id='subjList',component_property='options'),
+     Output(component_id='subjList',component_property='value')],
+    [Input(component_id='condition',component_property='value')])
+def subj_or_pair(condition):
+    options=[]
+    if condition == 'delta asset':
+        text='pair'
+        value=[n for n in range(1,81)]
+        for n in range(1,81):
+            options.append(dict(label = n, value = n))
+            
+    else:
+        text='subject'
+        value=[n for n in range(1,161)]
+        for n in range(1,161):
+            options.append(dict(label = n, value = n))
+            
+    return text, options, value
+
+# @app.callback(
+#     Output(component_id='specifiedDataObject',component_property='data'),
+#     [Input(component_id='condition',component_property='value'),
+#      Input(component_id='startTrial',component_property='value'),
+#      Input(component_id='endTrial',component_property='value'),
+#      Input(component_id='subjList',component_property='value')])
+# def run_data(condition,startTrial,endTrial,subjList):
+#     data = Data(condition,startTrial,endTrial,subjList)
+#     dataJ = json.dumps(data.__dict__)
+#     return dataJ
+
+@app.callback(
     Output(component_id="ElbowMethodPlot",component_property='figure'),
     [Input(component_id='condition',component_property='value'),
      Input(component_id='startTrial',component_property='value'),
-     Input(component_id='endTrial',component_property='value')])
-def update_elbowgraph(condition,startTrial,endTrial):
+     Input(component_id='endTrial',component_property='value'),
+     Input(component_id='subjList',component_property='value')])
+def update_elbowgraph(condition,startTrial,endTrial,subjList):
     ### page: trial choose
     
-    data = Data(condition,startTrial,endTrial)
+#     print(subjList)
+    data = Data(condition,startTrial,endTrial,subjList)
     # Elbow's method
+#     dataD = json.loads(dataJ)
+#     data = Data(**dataD)
     K = []
     for i in range(1,13):
         K.append(i)
@@ -223,12 +269,13 @@ def update_elbowgraph(condition,startTrial,endTrial):
     [Input(component_id='condition',component_property='value'),
      Input(component_id='startTrial',component_property='value'),
      Input(component_id='endTrial',component_property='value'),
+     Input(component_id='subjList',component_property='value'),
      Input(component_id='kChoose',component_property='value')]
 )
-def update_clusterGraph(condition,startTrial,endTrial,kChoose):
+def update_clusterGraph(condition,startTrial,endTrial,subjList,kChoose):
     ### page: kmeans results
     
-    data = Data(condition,startTrial,endTrial)
+    data = Data(condition,startTrial,endTrial,subjList)
     # Run kmeans after choose k deltaPrice
 #     kChoose=4
     X=np.array(data.ForK_dropna)
@@ -275,7 +322,7 @@ def update_clusterGraph(condition,startTrial,endTrial,kChoose):
         clusterSummary["Scenario"]=["> 0","> 0","> 0","= 0","= 0","= 0","< 0","< 0","< 0"]
         clusterSummary["Action"]=["buy","no trade","sell","buy","no trade","sell","buy","no trade","sell"]
         clusterSummary["n"]=memberCount[n_cluster-1]
-        clusterSummary["Mean"]=behaviorMean[n_cluster]
+        clusterSummary["Mean"]=['{:.4f}'.format(text) for text in behaviorMean[n_cluster]]
         table_list.append(dash_table.DataTable(style_table={'height':'400px',
                                                             'width':'400px'},
                                                style_cell={'textAlign': 'center',
@@ -296,11 +343,12 @@ def update_clusterGraph(condition,startTrial,endTrial,kChoose):
     [Input(component_id='condition',component_property='value'),
      Input(component_id='startTrial',component_property='value'),
      Input(component_id='endTrial',component_property='value'),
+     Input(component_id='subjList',component_property='value'),
      Input(component_id='threshold',component_property='value')])
-def update_dendrogram(condition,startTrial,endTrial,threshold):
+def update_dendrogram(condition,startTrial,endTrial,subjList,threshold):
     ### page: hkmeans results
     
-    data = Data(condition,startTrial,endTrial)
+    data = Data(condition,startTrial,endTrial,subjList)
     ### dendrogram
     X=np.asarray(data.ForK_dropna)
     fig = ff.create_dendrogram(X,color_threshold=threshold)
@@ -314,12 +362,13 @@ def update_dendrogram(condition,startTrial,endTrial,threshold):
     [Input(component_id='condition',component_property='value'),
      Input(component_id='startTrial',component_property='value'),
      Input(component_id='endTrial',component_property='value'),
+     Input(component_id='subjList',component_property='value'),
      Input(component_id='hkChoose',component_property='value')]
 )
-def update_hkCluster(condition,startTrial,endTrial,hkChoose):
+def update_hkCluster(condition,startTrial,endTrial,subjList,hkChoose):
     ### page: hkmeans results
     
-    data = Data(condition,startTrial,endTrial)
+    data = Data(condition,startTrial,endTrial,subjList)
     ### hierachical clustering(hkmeans)
 #     hkChoose=4
     X=np.array(data.ForK_dropna)
@@ -367,7 +416,7 @@ def update_hkCluster(condition,startTrial,endTrial,hkChoose):
         clusterSummary["Scenario"]=["> 0","> 0","> 0","= 0","= 0","= 0","< 0","< 0","< 0"]
         clusterSummary["Action"]=["buy","no trade","sell","buy","no trade","sell","buy","no trade","sell"]
         clusterSummary["n"]=memberCount[n_cluster-1]
-        clusterSummary["Mean"]=behaviorMean[n_cluster]
+        clusterSummary["Mean"]=['{:.4f}'.format(text) for text in behaviorMean[n_cluster]]
         summary_list.append(dash_table.DataTable(style_table={'height':'400px',
                                                             'width':'400px'},
                                                  style_cell={'textAlign': 'center',
