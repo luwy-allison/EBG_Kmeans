@@ -8,16 +8,16 @@ import json
 
 class Data:
     
-    def __init__(self, condition="", startTrial=1, endTrial=100):
+    def __init__(self, condition="", startTrial=1, endTrial=100,subjList=[n for n in range(1,161)]):
         with open('allSubjData.txt') as json_file:
             allData = json.load(json_file)
         allData = json.loads(allData)
-        # allData=allSubjData()
+        # allData=allSubjData()  # /*this was comment out due to decode problem in reading csv file on server*/ 
         self.wide = [["subj","more.buy","more.no trade","more.sell","equal.buy","equal.no trade","equal.sell","less.buy","less.no trade","less.sell"]] 
         # create self.wide
         if condition == "delta price":
             conditionId = 2
-            for subjNum in range(0,160):
+            for subjNum in subjList:
                 lastPrice = 0
                 nowPrice = 0
                 gain = [0,0,0]
@@ -25,35 +25,35 @@ class Data:
                 loss = [0,0,0]
                 for trial in range(startTrial, endTrial+1):
                     lastPrice = nowPrice
-                    nowPrice = int(allData[subjNum][trial][2])
+                    nowPrice = int(allData[subjNum-1][trial][2])
                     deltaPrice = nowPrice-lastPrice
                     if deltaPrice > 0:
-                        if allData[subjNum][trial][6] == "buy":
+                        if allData[subjNum-1][trial][6] == "buy":
                             gain[0]+=1
-                        elif allData[subjNum][trial][6] == "no trade":
+                        elif allData[subjNum-1][trial][6] == "no trade":
                             gain[1]+=1
-                        elif allData[subjNum][trial][6] == "sell":
+                        elif allData[subjNum-1][trial][6] == "sell":
                             gain[2]+=1
                     if deltaPrice == 0:
-                        if allData[subjNum][trial][6] == "buy":
+                        if allData[subjNum-1][trial][6] == "buy":
                             same[0]+=1
-                        elif allData[subjNum][trial][6] == "no trade":
+                        elif allData[subjNum-1][trial][6] == "no trade":
                             same[1]+=1
-                        elif allData[subjNum][trial][6] == "sell":
+                        elif allData[subjNum-1][trial][6] == "sell":
                             same[2]+=1
                     if deltaPrice<0:
-                        if allData[subjNum][trial][6] == "buy":
+                        if allData[subjNum-1][trial][6] == "buy":
                             loss[0]+=1
-                        elif allData[subjNum][trial][6] == "no trade":
+                        elif allData[subjNum-1][trial][6] == "no trade":
                             loss[1]+=1
-                        elif allData[subjNum][trial][6] == "sell":
+                        elif allData[subjNum-1][trial][6] == "sell":
                             loss[2]+=1
-                self.wide.append([subjNum+1,gain[0],gain[1],gain[2],same[0],same[1],same[2],loss[0],loss[1],loss[2]])
+                self.wide.append([subjNum,gain[0],gain[1],gain[2],same[0],same[1],same[2],loss[0],loss[1],loss[2]])
         elif condition == "delta asset":
             conditionId = 5
-            for pairNum in range(0,80):
-                p1Num = pairNum*2
-                p2Num = pairNum*2+1
+            for pairNum in subjList:
+                p1Num = (pairNum-1)*2
+                p2Num = (pairNum-1)*2+1
                 p1lastAsset = 10000
                 p1nowAsset = 10000
                 p1gain = [0,0,0]
@@ -138,7 +138,7 @@ class Data:
      
         elif condition == "delta cash":
             conditionId = 3
-            for subjNum in range(0,160):
+            for subjNum in subjList:
                 lastCash = 0
                 nowCash = 0
                 gain = [0,0,0]
@@ -146,31 +146,31 @@ class Data:
                 loss = [0,0,0]
                 for trial in range(startTrial,endTrial+1):
                     lastCash = nowCash
-                    nowCash = int(allData[subjNum][trial][3])
+                    nowCash = int(allData[subjNum-1][trial][3])
                     deltaCash = nowCash-lastCash
 
                     if deltaCash > 0:
-                        if allData[subjNum][trial][6]=="buy":
+                        if allData[subjNum-1][trial][6]=="buy":
                             gain[0]+=1
-                        elif allData[subjNum][trial][6]=="no trade":
+                        elif allData[subjNum-1][trial][6]=="no trade":
                             gain[1]+=1
-                        elif allData[subjNum][trial][6]=="sell":
+                        elif allData[subjNum-1][trial][6]=="sell":
                             gain[2]+=1
                     if deltaCash == 0:
-                        if allData[subjNum][trial][6]=="buy":
+                        if allData[subjNum-1][trial][6]=="buy":
                             same[0]+=1
-                        elif allData[subjNum][trial][6]=="no trade":
+                        elif allData[subjNum-1][trial][6]=="no trade":
                             same[1]+=1
-                        elif allData[subjNum][trial][6]=="sell":
+                        elif allData[subjNum-1][trial][6]=="sell":
                             same[2]+=1
                     if deltaCash < 0:
-                        if allData[subjNum][trial][6]=="buy":
+                        if allData[subjNum]-1[trial][6]=="buy":
                             loss[0]+=1
-                        elif allData[subjNum][trial][6]=="no trade":
+                        elif allData[subjNum-1][trial][6]=="no trade":
                             loss[1]+=1
-                        elif allData[subjNum][trial][6]=="sell":
+                        elif allData[subjNum-1][trial][6]=="sell":
                             loss[2]+=1
-                self.wide.append([subjNum+1,gain[0],gain[1],gain[2],same[0],same[1],same[2],loss[0],loss[1],loss[2]])
+                self.wide.append([subjNum,gain[0],gain[1],gain[2],same[0],same[1],same[2],loss[0],loss[1],loss[2]])
         else:
             print("Condition not support!")
         #
