@@ -178,7 +178,7 @@ class Data:
                         elif allData[subjNum-1][trial][6]=="sell":
                             same[2]+=1
                     if deltaCash < 0:
-                        if allData[subjNum]-1[trial][6]=="buy":
+                        if allData[subjNum-1][trial][6]=="buy":
                             loss[0]+=1
                         elif allData[subjNum-1][trial][6]=="no trade":
                             loss[1]+=1
@@ -214,6 +214,19 @@ class Data:
         self.wide_dropna_pd=self.wide_pd.dropna()
         self.wide_na_pd=self.wide_pd[self.wide_pd.isnull().any(axis=1)]
         self.ForK=self.ForK_pd.values.tolist()
+        
+    def to_json(self):
+        self.ForK_pd = self.ForK_pd.to_json()
+        self.wide_pd = self.wide_pd.to_json()
+        self.ForK_na_pd = self.ForK_na_pd.to_json()
+        self.wide_dropna_pd = self.wide_dropna_pd.to_json()
+        self.wide_na_pd = self.wide_na_pd.to_json()
+    def de_json(self):
+        self.ForK_pd = pd.read_json(self.ForK_pd)
+        self.wide_pd = pd.read_json(self.wide_pd)
+        self.ForK_na_pd = pd.read_json(self.ForK_na_pd)
+        self.wide_dropna_pd = pd.read_json(self.wide_dropna_pd)
+        self.wide_na_pd = pd.read_json(self.wide_na_pd)
 
                 
 # def allSubjData():
