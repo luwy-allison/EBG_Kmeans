@@ -60,7 +60,7 @@ app.layout= html.Div([
                                                                html.Br(),
                                                                html.Br(),
                                                                'end ',dcc.Input(id='endTrial', type='number', min=1, max=100, value=100),
-                                                               html.Br(),
+                                                               html.Br(),html.Br(),
                                                                html.Div(id='subjorpair'),
                                                                dcc.Checklist(id='subjList',options=subjNumDictList,value=[n for n in range(1,161)])
                                                            ]),
@@ -219,31 +219,43 @@ def subj_or_pair(condition):
             
     return text, options, value
 
-# @app.callback(
-#     Output(component_id='specifiedDataObject',component_property='data'),
-#     [Input(component_id='condition',component_property='value'),
-#      Input(component_id='startTrial',component_property='value'),
-#      Input(component_id='endTrial',component_property='value'),
-#      Input(component_id='subjList',component_property='value')])
-# def run_data(condition,startTrial,endTrial,subjList):
-#     data = Data(condition,startTrial,endTrial,subjList)
-#     dataJ = json.dumps(data.__dict__)
-#     return dataJ
-
 @app.callback(
-    Output(component_id="ElbowMethodPlot",component_property='figure'),
+    Output(component_id='specifiedDataObject',component_property='data'),
     [Input(component_id='condition',component_property='value'),
      Input(component_id='startTrial',component_property='value'),
      Input(component_id='endTrial',component_property='value'),
      Input(component_id='subjList',component_property='value')])
-def update_elbowgraph(condition,startTrial,endTrial,subjList):
+def run_data(condition,startTrial,endTrial,subjList):
+    '''
+    * pass class object by json string *
+    Data(class object) 
+    -> .to_json()(a method)->(所有attributes都變成json格式)
+    -> json.dumps()->(.__dict__的json格式)
+    
+    str(json) 
+    -> json.loads()->(attribute的json格式的dictionary)
+    -> Data(**dict)-> 重新建立object
+    -> .de_json()(a method)->(所有attributes回復原形)
+    '''
+    data = Data(condition,startTrial,endTrial,subjList)
+    data.to_json()
+    dataJ = json.dumps(data.__dict__)
+    return dataJ
+
+@app.callback(
+    Output(component_id="ElbowMethodPlot",component_property='figure'),
+    [Input(component_id='specifiedDataObject',component_property='data')])
+def update_elbowgraph(dataJ):
     ### page: trial choose
     
 #     print(subjList)
-    data = Data(condition,startTrial,endTrial,subjList)
+#     data = Data(condition,startTrial,endTrial,subjList) 
+    dataD = json.loads(dataJ)
+    data=Data()
+    data.from_dict(**dataD)
+    data.de_json()
+    
     # Elbow's method
-#     dataD = json.loads(dataJ)
-#     data = Data(**dataD)
     K = []
     for i in range(1,13):
         K.append(i)
@@ -266,16 +278,17 @@ def update_elbowgraph(condition,startTrial,endTrial,subjList):
      Output(component_id='dataSummary',component_property='children'),
      Output(component_id='behaviorMean',component_property='data'),
      Output(component_id='clusterBehaviorCount',component_property='data')],
-    [Input(component_id='condition',component_property='value'),
-     Input(component_id='startTrial',component_property='value'),
-     Input(component_id='endTrial',component_property='value'),
-     Input(component_id='subjList',component_property='value'),
+    [Input(component_id='specifiedDataObject',component_property='data'),
      Input(component_id='kChoose',component_property='value')]
 )
-def update_clusterGraph(condition,startTrial,endTrial,subjList,kChoose):
+def update_clusterBarGraph(dataJ,kChoose):
     ### page: kmeans results
     
-    data = Data(condition,startTrial,endTrial,subjList)
+#     data = Data(condition,startTrial,endTrial,subjList)
+    dataD = json.loads(dataJ)
+    data=Data()
+    data.from_dict(**dataD)
+    data.de_json()
     # Run kmeans after choose k deltaPrice
 #     kChoose=4
     X=np.array(data.ForK_dropna)
@@ -340,15 +353,16 @@ def update_clusterGraph(condition,startTrial,endTrial,subjList,kChoose):
 
 @app.callback(
     Output(component_id="dendrogram",component_property='figure'),
-    [Input(component_id='condition',component_property='value'),
-     Input(component_id='startTrial',component_property='value'),
-     Input(component_id='endTrial',component_property='value'),
-     Input(component_id='subjList',component_property='value'),
+    [Input(component_id='specifiedDataObject',component_property='data'),
      Input(component_id='threshold',component_property='value')])
-def update_dendrogram(condition,startTrial,endTrial,subjList,threshold):
+def update_dendrogram(dataJ,threshold):
     ### page: hkmeans results
     
-    data = Data(condition,startTrial,endTrial,subjList)
+#     data = Data(condition,startTrial,endTrial,subjList)
+    dataD = json.loads(dataJ)
+    data=Data()
+    data.from_dict(**dataD)
+    data.de_json()
     ### dendrogram
     X=np.asarray(data.ForK_dropna)
     fig = ff.create_dendrogram(X,color_threshold=threshold)
@@ -359,16 +373,17 @@ def update_dendrogram(condition,startTrial,endTrial,subjList,threshold):
     [Output(component_id='hkClusterBarPlot',component_property='children'),
      Output(component_id='hkDataSummary',component_property='children'),
      Output(component_id='hkClusterSubj',component_property='children')],
-    [Input(component_id='condition',component_property='value'),
-     Input(component_id='startTrial',component_property='value'),
-     Input(component_id='endTrial',component_property='value'),
-     Input(component_id='subjList',component_property='value'),
+    [Input(component_id='specifiedDataObject',component_property='data'),
      Input(component_id='hkChoose',component_property='value')]
 )
-def update_hkCluster(condition,startTrial,endTrial,subjList,hkChoose):
+def update_hkCluster(dataJ,hkChoose):
     ### page: hkmeans results
     
-    data = Data(condition,startTrial,endTrial,subjList)
+#     data = Data(condition,startTrial,endTrial,subjList)
+    dataD = json.loads(dataJ)
+    data=Data()
+    data.from_dict(**dataD)
+    data.de_json()
     ### hierachical clustering(hkmeans)
 #     hkChoose=4
     X=np.array(data.ForK_dropna)

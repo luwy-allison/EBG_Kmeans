@@ -22,7 +22,7 @@ import json
 
 class Data:
     
-    def __init__(self, condition="", startTrial=1, endTrial=100,subjList=[n for n in range(1,161)]):
+    def __init__(self, condition=None, startTrial=1, endTrial=100,subjList=[n for n in range(1,161)]):
         with open('allSubjData.txt') as json_file:
             allData = json.load(json_file)
         allData = json.loads(allData)
@@ -185,6 +185,8 @@ class Data:
                         elif allData[subjNum-1][trial][6]=="sell":
                             loss[2]+=1
                 self.wide.append([subjNum,gain[0],gain[1],gain[2],same[0],same[1],same[2],loss[0],loss[1],loss[2]])
+        elif condition == None:
+            print("An empty Data is created.")
         else:
             print("Condition not support!")
         #
@@ -221,6 +223,18 @@ class Data:
         self.ForK_na_pd = self.ForK_na_pd.to_json()
         self.wide_dropna_pd = self.wide_dropna_pd.to_json()
         self.wide_na_pd = self.wide_na_pd.to_json()
+    def from_dict(self,wide,ForK_pd,wide_pd,ForK_dropna,ForK_na_pd,wide_dropna_pd,wide_na_pd,ForK,label_pd=None,label = None):
+        self.wide = wide
+        self.ForK_pd = ForK_pd
+        self.wide_pd = wide_pd
+        self.ForK = ForK
+        self.ForK_dropna = ForK_dropna
+        self.wide_dropna_pd = wide_dropna_pd
+        self.ForK_na_pd = ForK_na_pd
+        self.wide_na_pd = wide_na_pd
+        self.label_pd = label_pd
+        self.label = label
+    
     def de_json(self):
         self.ForK_pd = pd.read_json(self.ForK_pd)
         self.wide_pd = pd.read_json(self.wide_pd)
