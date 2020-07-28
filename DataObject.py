@@ -1,4 +1,18 @@
 ## Data object
+
+'''
+attributes:
+    .wide(List)(情境下行為總數完整資料): 依照情境整理成 1 subj 1 vector
+    .ForK_pd(Dataframe): 行為比率，含na
+    .ForK(List)(行為比率完整資料 含na): 去掉column name
+    .ForK_dropna(List)(丟入kmeans用): 行為比率，去掉na，去掉subj column，
+    .wide_dropna_pd(Dataframe)(貼labels用):
+    .ForK_na_pd(Dataframe)
+    .wide_na_pd(Dataframe)
+    .label_pd(Dataframe)
+    .label(List)(bar plot用)
+
+'''
 import math
 import pandas as pd
 import os
