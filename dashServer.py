@@ -569,8 +569,15 @@ def update_lrtest(compare_mode,method,cluster,behaviorMean,clusterBehaviorCount,
     scenario = int(scenario)
     general = toLikelihood(behaviorMean[cluster][scenario:scenario+3], count = clusterBehaviorCount[cluster][scenario:scenario+3], parameterChoose=gen_par, assignedValue = None)
     restrict = toLikelihood(behaviorMean[cluster][scenario:scenario+3], count = clusterBehaviorCount[cluster][scenario:scenario+3], parameterChoose=res_par, assignedValue = res_assignedValues)
+    
+    estimatedBarFig = go.Figure(data=[
+        go.Bar(name='general model', x=['buy','no trade','sell'], y=general.estimatedParameter),
+        go.Bar(name='restrict model', x=['buy','no trade','sell'], y=restrict.estimatedParameter)    
+    ])
+    estimatedBarFig.update_layout(barmode='group', width=700, height=400)    
+    
     test_G,test_p = likelihood_ratio_test(general,restrict)
-    return clusterBarFig,clusterBarFig,'p value={:.5f}'.format(test_p)
+    return clusterBarFig,estimatedBarFig,'p value={:.5f}'.format(test_p)
 
 if __name__ == "__main__":
     app.run_server(debug=True, use_reloader=False)
