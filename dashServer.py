@@ -178,7 +178,12 @@ app.layout= html.Div([
                                                                                      {'label':'df=1(sell assigned)','value':'assigned(2)'},
                                                                                      {'label':'df=0(all assigned)','value':'typical(given all)'}]),
                                                                html.Br(),
-                                                               html.Div(id='assigning'),
+                                                               html.Div(id = 'assign_p_div', style = {'display':'none'},
+                                                                        children = ['buy = ', dcc.Input(id = 'assign_p', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
+                                                               html.Div(id = 'assign_q_div',style = {'display':'none'},
+                                                                        children = ['no trade = ', dcc.Input(id = 'assign_q', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
+                                                               html.Div(id = 'assign_r_div', style = {'display':'none'}, 
+                                                                        children=['sell = ', dcc.Input(id = 'assign_r', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
                                                                dcc.Store(id='assignedValues')
                                                                
                                                            ]),
@@ -472,46 +477,99 @@ def clusterNum(knum,hknum,method):
     return clusterMax
 
 #     *** below not finish ***
-@app.callback(Output(component_id='assigning',component_property='children'),
+@app.callback([Output(component_id='assign_p_div',component_property='style'),
+               Output(component_id='assign_p',component_property='value'),
+               Output(component_id='assign_q_div',component_property='style'),
+               Output(component_id='assign_q',component_property='value'),
+               Output(component_id='assign_r_div',component_property='style'),
+               Output(component_id='assign_r',component_property='value')],
               [Input(component_id='restrict_model',component_property='value')])
 def update_assigning_option(mode): 
     ### page: likelihood ratio test
-    
+    p_value = None
+    q_value = None
+    r_value = None
     if mode == 'assigned(0)':
-        options = [dcc.Input(id='assign_p', type='number', min=0, max=1, value=0.5)]
+#         options = [dcc.Input(id='assign_p', type='number', min=0, max=1, value=0.3, step = 0.1)]
+        p_type = {'display':'block'}
+        q_type = {'display':'none'}
+        r_type = {'display':'none'}
     elif mode == 'assigned(1)':
-        options = [dcc.Input(id='assign_q', type='number', min=0, max=1, value=0.5)]
+#         options = [dcc.Input(id='assign_q', type='number', min=0, max=1, value=0.3, step = 0.1)]
+        p_type = {'display':'none'}
+        q_type = {'display':'block'}
+        r_type = {'display':'none'}    
     elif mode == 'assigned(2)':
-        options = [dcc.Input(id='assign_r', type='number', min=0, max=1, value=0.5)]
+#         options = [dcc.Input(id='assign_r', type='number', min=0, max=1, value=0.3, step = 0.1)]
+        p_type = {'display':'none'}
+        q_type = {'display':'none'}
+        r_type = {'display':'block'}
     elif mode == 'typical(given all)':
-        options = []
-        options.append(dcc.Input(id='assign_p', type='number', min=0, max=1, value=0.2))
-        options.append(dcc.Input(id='assign_q', type='number', min=0, max=1, value=0.3))
-        options.append(dcc.Input(id='assign_r', type='number', min=0, max=1, value=0.5))
+#         options = []
+#         options.append(dcc.Input(id='assign_p', type='number', min=0, max=1, value=0.2))
+#         options.append(dcc.Input(id='assign_q', type='number', min=0, max=1, value=0.3))
+#         options.append(dcc.Input(id='assign_r', type='number', min=0, max=1, value=0.5))
+        p_type = {'display':'block'}
+        q_type = {'display':'block'}
+        r_type = {'display':'block'}
     else:
-        options = None
-    return options
+#         options = None
+        p_type = {'display':'none'}
+        q_type = {'display':'none'}
+        r_type = {'display':'none'}
+    return p_type, p_value, q_type, q_value, r_type, r_value
+
+# @app.callback(Output(component_id='assign_r',component_property='value'),
+#                [Input(component_id='restrict_model',component_property='value'),
+#                 Input(component_id='assign_p',component_property='value'),
+#                 Input(component_id='assign_q',component_property='value')])
+# def total_to_one(mode,p,q):
+#     if mode == 'typical(given all)':
+#         r = 1-p-q  
+#     return r
     
 @app.callback(Output(component_id='assignedValues',component_property='data'),
-              [Input(component_id='assigning',component_property='children')])
-def store_assigning_values(assigned_val):
-    ### page: likelihood ratio test
-    if assigned_val != None:
-        print(assigned_val)
-        print(len(assigned_val))
-        if len(assigned_val)>1:
-            storeVal = []
-            for i in range(len(assigned_val)):
-                # print(assigned_val[i])
-                storeVal.append(assigned_val[i]['props']['value'])
-        else:
-            storeVal = assigned_val[0]['props']['value']
-    else:
+              [Input(component_id='assign_p',component_property='value'),
+               Input(component_id='assign_q',component_property='value'),
+               Input(component_id='assign_r',component_property='value')])
+def store_assigning_values(assign_p,assign_q,assign_r):
+    ### page: likelihood ratio test'
+    
+    storeVal = []
+    for assigned_val in [assign_p,assign_q,assign_r]:
+        if assigned_val != None:
+            print(assigned_val)
+            storeVal.append(assigned_val)
+    if len(storeVal) == 1:
+        storeVal = storeVal[0]
+    elif len(storeVal) == 0:
         storeVal = None
-    return storeVal
+    return storeVal    
 
-@app.callback([Output(component_id='clusterBar',component_property='figure'),
-               Output(component_id='lrtestBar',component_property='figure'),
+@app.callback(Output(component_id='clusterBar',component_property='figure'),
+              [Input(component_id='compareCondition',component_property='value'),
+               Input(component_id='method',component_property='value'),
+               Input(component_id='lrtCluster',component_property='value'),
+               Input(component_id='behaviorMean',component_property='data'),
+               Input(component_id='clusterBehaviorCount',component_property='data'),
+               Input(component_id='scenarioChoose',component_property='value')
+               ])
+def update_scenario_bar_plot(compare_mode,method,cluster,behaviorMean,clusterBehaviorCount,scenario):
+    if scenario == 0:
+        scenName = '> 0'
+    elif scenario ==3:
+        scenName = '= 0'
+    else:
+        scenName = '< 0'
+    clusterBarFig = go.Figure(data=[
+        go.Bar(name='buy', x = [scenName], y=[behaviorMean[cluster][scenario]]),
+        go.Bar(name='no trade', x = [scenName], y=[behaviorMean[cluster][scenario+1]]),
+        go.Bar(name='sell', x = [scenName], y=[behaviorMean[cluster][scenario+2]])
+    ])
+    clusterBarFig.update_layout(barmode='group', width=700, height=400)
+    return clusterBarFig
+
+@app.callback([Output(component_id='lrtestBar',component_property='figure'),
                Output(component_id='lrtestPvalue',component_property='children')],
               [Input(component_id='compareCondition',component_property='value'),
                Input(component_id='method',component_property='value'),
@@ -525,12 +583,6 @@ def store_assigning_values(assigned_val):
 def update_lrtest(compare_mode,method,cluster,behaviorMean,clusterBehaviorCount,scenario,gen_model,res_model,assignedValues):
     ### page: likelihood ratio test
     
-    clusterBarFig = go.Figure(data=[
-        go.Bar(name='buy', x=['> 0','= 0','< 0'], y=[behaviorMean[cluster][0],behaviorMean[cluster][3],behaviorMean[cluster][6]]),
-        go.Bar(name='no trade', x=['> 0','= 0','< 0'], y=[behaviorMean[cluster][1],behaviorMean[cluster][4],behaviorMean[cluster][7]]),
-        go.Bar(name='sell', x=['> 0','= 0','< 0'], y=[behaviorMean[cluster][2],behaviorMean[cluster][5],behaviorMean[cluster][8]])    
-    ])
-    clusterBarFig.update_layout(barmode='group', width=700, height=400)
     print(assignedValues)
     if gen_model =='typical(not given)':
         gen_par=()
@@ -577,7 +629,7 @@ def update_lrtest(compare_mode,method,cluster,behaviorMean,clusterBehaviorCount,
     estimatedBarFig.update_layout(barmode='group', width=700, height=400)    
     
     test_G,test_p = likelihood_ratio_test(general,restrict)
-    return clusterBarFig,estimatedBarFig,'p value={:.5f}'.format(test_p)
+    return estimatedBarFig,'p value={:.5f}'.format(test_p)
 
 if __name__ == "__main__":
     app.run_server(debug=True, use_reloader=False)
