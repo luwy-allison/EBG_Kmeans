@@ -195,17 +195,17 @@ class Data:
             decisionCount=[sum(self.ForK_pd.loc[i,"more.buy":"more.sell"]),sum(self.ForK_pd.loc[i,"equal.buy":"equal.sell"]),sum(self.ForK_pd.loc[i,"less.buy":"less.sell"])]
             for j in self.ForK_pd.columns[1:4]:
                 if decisionCount[0]==0:
-                    self.ForK_pd.loc[i,j]=pd.NA
+                    self.ForK_pd.loc[i,j]=None
                 else:
                     self.ForK_pd.loc[i,j]/=decisionCount[0]
             for j in self.ForK_pd.columns[4:7]:
                 if decisionCount[1]==0:
-                    self.ForK_pd.loc[i,j]=pd.NA
+                    self.ForK_pd.loc[i,j]=None
                 else:
                     self.ForK_pd.loc[i,j]/=decisionCount[1]
             for j in self.ForK_pd.columns[7:10]:
                 if decisionCount[2]==0:
-                    self.ForK_pd.loc[i,j]=pd.NA
+                    self.ForK_pd.loc[i,j]=None
                 else:
                     self.ForK_pd.loc[i,j]/=decisionCount[2]
                     
