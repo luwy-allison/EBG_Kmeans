@@ -1,10 +1,11 @@
-## dash latest(0725)
+## dash latest(0803)
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 import plotly.figure_factory as ff
 import dash_table
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import math
 import pandas as pd
@@ -83,20 +84,21 @@ app.layout= html.Div([
                                                   html.Br(),
                                                   dcc.Store(id='clusterBehaviorCount'),
                                                   dcc.Store(id='behaviorMean'),
-                                                  html.Div(style={'display':'flex',
-                                                                  'padding':'10px',
-                                                                  'text-align':'center'},
-                                                           children=[html.Div(id='clusterBarPlot', style={'text-align':'center',
-                                                                                                          'padding':'10px'}),
-                                                                     html.Div(id='dataSummary', style={'text-align':'center',
-                                                                                                       'padding':'10px'}),
-                                                                     html.Div(id='clusterSubj',style={'text-align':'center',
-                                                                                                      'padding':'10px'})])
+                                                  html.Div(id='clusterBarPlotResult')
+#                                                   html.Div(style={'display':'flex',
+#                                                                   'padding':'10px',
+#                                                                   'text-align':'center'},
+#                                                            children=[html.Div(id='clusterBarPlot', style={'text-align':'center',
+#                                                                                                           'padding':'10px'}),
+#                                                                      html.Div(id='dataSummary', style={'text-align':'center',
+#                                                                                                        'padding':'10px'}),
+#                                                                      html.Div(id='clusterSubj',style={'text-align':'center',
+#                                                                                                       'padding':'10px'})])
                                                   
                                               ])
 
                                  ]), 
-                         dcc.Tab(label="hkmeans results",
+                         dcc.Tab(label="hierarchical clustering",
                                  children=[
                                      html.Div(style={'text-align':'center'},
                                               children=[
@@ -110,15 +112,16 @@ app.layout= html.Div([
                                                   html.Br(),
                                                   html.Div(style={'text-align':'center'},
                                                            children=[dcc.Graph(id='dendrogram',style={'display': 'inline-block'})]),
-                                                  html.Div(style={'display':'flex',
-                                                                  'padding':'20px',
-                                                                  'text-align':'center'},
-                                                           children=[html.Div(id='hkClusterBarPlot', style={'text-align':'center',
-                                                                                                           'padding':'20px'}),
-                                                                     html.Div(id='hkDataSummary', style={'text-align':'center',
-                                                                                                         'padding':'20px'}),
-                                                                     html.Div(id='hkClusterSubj', style={'text-align':'center',
-                                                                                                         'padding':'20px'})])
+                                                  html.Div(id='hkClusterBarPlotResult')
+#                                                   html.Div(style={'display':'flex',
+#                                                                   'padding':'20px',
+#                                                                   'text-align':'center'},
+#                                                            children=[html.Div(id='hkClusterBarPlot', style={'text-align':'center',
+#                                                                                                            'padding':'20px'}),
+#                                                                      html.Div(id='hkDataSummary', style={'text-align':'center',
+#                                                                                                          'padding':'20px'}),
+#                                                                      html.Div(id='hkClusterSubj', style={'text-align':'center',
+#                                                                                                          'padding':'20px'})])
                                               ])
                                  ]),
                          dcc.Tab(label="likelihood ratio test", 
@@ -178,12 +181,15 @@ app.layout= html.Div([
                                                                                      {'label':'df=1(sell assigned)','value':'assigned(2)'},
                                                                                      {'label':'df=0(all assigned)','value':'typical(given all)'}]),
                                                                html.Br(),
-                                                               html.Div(id = 'assign_p_div', style = {'display':'none'},
-                                                                        children = ['buy = ', dcc.Input(id = 'assign_p', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
-                                                               html.Div(id = 'assign_q_div',style = {'display':'none'},
-                                                                        children = ['no trade = ', dcc.Input(id = 'assign_q', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
-                                                               html.Div(id = 'assign_r_div', style = {'display':'none'}, 
-                                                                        children=['sell = ', dcc.Input(id = 'assign_r', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
+                                                               html.Div(id = 'assign_div',style={'text-align':'left'},
+                                                                        children = [
+                                                                            html.Div(id = 'assign_p_div', style = {'display':'none'},
+                                                                                     children = ['buy = ', dcc.Input(id = 'assign_p', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
+                                                                            html.Div(id = 'assign_q_div',style = {'display':'none'},
+                                                                                     children = ['no trade = ', dcc.Input(id = 'assign_q', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
+                                                                            html.Div(id = 'assign_r_div', style = {'display':'none'},
+                                                                                     children=['sell = ', dcc.Input(id = 'assign_r', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()])
+                                                                        ]),
                                                                dcc.Store(id='assignedValues')
                                                                
                                                            ]),
@@ -279,8 +285,9 @@ def update_elbowgraph(dataJ):
     return fig
 
 @app.callback(
-    [Output(component_id='clusterBarPlot',component_property='children'),
-     Output(component_id='dataSummary',component_property='children'),
+    [Output(component_id='clusterBarPlotResult',component_property='children'),
+#      Output(component_id='dataSummary',component_property='children'),
+#      Output(component_id='clusterSubj',component_property='children'),
      Output(component_id='behaviorMean',component_property='data'),
      Output(component_id='clusterBehaviorCount',component_property='data')],
     [Input(component_id='specifiedDataObject',component_property='data'),
@@ -330,12 +337,29 @@ def update_clusterBarGraph(dataJ,kChoose):
     # plot cluster behavior ratio bar plot
     fig_list=[]
     table_list=[]
+    subj_list=[]
+    result_list=[]
     for n_cluster in range(1,kChoose+1):
+        table_list.append(html.Br())
         table_list.append(html.Br())
         if n_cluster > 1:
             fig_list.append(html.Br())
             table_list.append(html.Br())
-
+            result_list.append(html.Br())
+        subjectInCluster=data.label_pd[data.label_pd['label']==n_cluster-1].round(4)
+        fig_list.append(html.Button('subjects list',id='k_cluster_{}'.format(n_cluster),n_clicks=0))
+        fig_list.append(dbc.Tooltip([html.Div(dash_table.DataTable(style_table={'overflowX': 'auto'},
+                                                            style_cell={'textAlign':'center','padding':'5px',
+                                                                        'minWidth': '10px', 'width': '30px', 'maxWidth': '50px',
+                                                                        'whiteSpace': 'normal',
+                                                                        'height': 'auto'},
+                                                            style_header={'fontWeight':'bold'},
+                                                            columns=[{"name": i, "id": i} for i in subjectInCluster.columns],data=subjectInCluster.to_dict('records')))],
+                                      target='k_cluster_{}'.format(n_cluster),
+                                      placement='auto',
+                                      autohide=False))
+#         fig_list.append(html.Br())
+#         fig_list.append(html.Br())
         clusterSummary=pd.DataFrame()
         clusterSummary["Scenario"]=["> 0","> 0","> 0","= 0","= 0","= 0","< 0","< 0","< 0"]
         clusterSummary["Action"]=["buy","no trade","sell","buy","no trade","sell","buy","no trade","sell"]
@@ -347,6 +371,7 @@ def update_clusterBarGraph(dataJ,kChoose):
                                                            'padding': '5px'},
                                                style_header={'fontWeight':'bold'},
                                                columns=[{"name": i, "id": i} for i in clusterSummary.columns],data=clusterSummary.to_dict('records')))
+
         fig = go.Figure(data=[
             go.Bar(name='buy', x=['> 0','= 0','< 0'], y=[behaviorMean[n_cluster][0],behaviorMean[n_cluster][3],behaviorMean[n_cluster][6]]),
             go.Bar(name='no trade', x=['> 0','= 0','< 0'], y=[behaviorMean[n_cluster][1],behaviorMean[n_cluster][4],behaviorMean[n_cluster][7]]),
@@ -354,7 +379,23 @@ def update_clusterBarGraph(dataJ,kChoose):
         ])
         fig.update_layout(barmode='group', width=700, height=400)
         fig_list.append(dcc.Graph(figure=fig))
-    return fig_list,table_list,behaviorMean,clusterBehaviorCount
+        result_list.append(html.Div(style={'display':'flex','padding':'10px','text-align':'center'},
+                                    children=[html.Div(dcc.Graph(figure=fig),
+                                                       style={'padding':'10px'}),
+                                              html.Div(dash_table.DataTable(style_table={'height':'400px','width':'400px'},
+                                                                   style_cell={'textAlign': 'center','padding': '5px'},
+                                                                   style_header={'fontWeight':'bold'},
+                                                                   columns=[{"name": i, "id": i} for i in clusterSummary.columns],data=clusterSummary.to_dict('records')),
+                                                       style={'padding':'10px'})]))
+        result_list.append(html.Div(dash_table.DataTable(style_table={'overflowX': 'auto'},
+                                                         style_cell={'textAlign':'center','padding':'5px',
+                                                                     'minWidth': '10px', 'width': '30px', 'maxWidth': '50px',
+                                                                     'whiteSpace': 'normal',
+                                                                     'height': 'auto'},
+                                                         style_header={'fontWeight':'bold'},
+                                                         columns=[{"name": i, "id": i} for i in subjectInCluster.columns],data=subjectInCluster.to_dict('records'))))
+    
+    return result_list,behaviorMean,clusterBehaviorCount
 
 @app.callback(
     Output(component_id="dendrogram",component_property='figure'),
@@ -370,14 +411,12 @@ def update_dendrogram(dataJ,threshold):
     data.de_json()
     ### dendrogram
     X=np.asarray(data.ForK_dropna)
-    fig = ff.create_dendrogram(X,color_threshold=threshold)
+    fig = ff.create_dendrogram(X,color_threshold=threshold,labels=data.wide_dropna_pd['subj'].values.tolist())
     fig.update_layout(width=1000, height=600, font={'size':8})
     return fig
 
 @app.callback(
-    [Output(component_id='hkClusterBarPlot',component_property='children'),
-     Output(component_id='hkDataSummary',component_property='children'),
-     Output(component_id='hkClusterSubj',component_property='children')],
+    Output(component_id='hkClusterBarPlotResult',component_property='children'),
     [Input(component_id='specifiedDataObject',component_property='data'),
      Input(component_id='hkChoose',component_property='value')]
 )
@@ -424,6 +463,7 @@ def update_hkCluster(dataJ,hkChoose):
     fig_list=[]
     summary_list=[]
     table_list=[]
+    result_list=[]
     for n_cluster in range(1,hkChoose+1):
         summary_list.append(html.Br())
         table_list.append(html.Br())
@@ -431,7 +471,9 @@ def update_hkCluster(dataJ,hkChoose):
             fig_list.append(html.Br())
             summary_list.append(html.Br())
             table_list.append(html.Br())
-
+            result_list.append(html.Br())
+        
+        subjectInCluster=data.label_pd[data.label_pd['label_h']==n_cluster-1].round(4)
         clusterSummary=pd.DataFrame()
         clusterSummary["Scenario"]=["> 0","> 0","> 0","= 0","= 0","= 0","< 0","< 0","< 0"]
         clusterSummary["Action"]=["buy","no trade","sell","buy","no trade","sell","buy","no trade","sell"]
@@ -451,8 +493,24 @@ def update_hkCluster(dataJ,hkChoose):
         ])
         fig.update_layout(barmode='group', width=700, height=400)
         fig_list.append(dcc.Graph(figure=fig))
+        result_list.append(html.Div(style={'display':'flex','padding':'10px','text-align':'center'},
+                                    children=[html.Div(dcc.Graph(figure=fig),
+                                                       style={'padding':'10px'}),
+                                              html.Div(dash_table.DataTable(style_table={'height':'400px','width':'400px'},
+                                                                   style_cell={'textAlign': 'center','padding': '5px'},
+                                                                   style_header={'fontWeight':'bold'},
+                                                                   columns=[{"name": i, "id": i} for i in clusterSummary.columns],data=clusterSummary.to_dict('records')),
+                                                       style={'padding':'10px'})]))
+        result_list.append(html.Div(dash_table.DataTable(style_table={'overflowX': 'auto'},
+                                                         style_cell={'textAlign':'center','padding':'5px',
+                                                                     'minWidth': '10px', 'width': '30px', 'maxWidth': '50px',
+                                                                     'whiteSpace': 'normal',
+                                                                     'height': 'auto'},
+                                                         style_header={'fontWeight':'bold'},
+                                                         columns=[{"name": i, "id": i} for i in subjectInCluster.columns],data=subjectInCluster.to_dict('records'))))
+
     
-    return fig_list, summary_list, table_list
+    return result_list
 
 # @app.callback(Output(component_id=''),
 #               Input(component_id='compareCondition',component_property='value'))

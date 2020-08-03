@@ -242,7 +242,12 @@ class Data:
         self.wide_dropna_pd = pd.read_json(self.wide_dropna_pd)
         self.wide_na_pd = pd.read_json(self.wide_na_pd)
 
-                
+def allSubjData():
+    with open('allSubjData.txt') as json_file:
+        allData = json.load(json_file)
+    allData = json.loads(allData)
+    return allData
+
 # def allSubjData():
     # subjDataList = []
     # path = "./CSV format data/"
