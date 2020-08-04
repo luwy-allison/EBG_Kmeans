@@ -82,8 +82,8 @@ app.layout= html.Div([
                                                   dcc.Input(id='kChoose', type='number', min=1, max=12, value=1),
                                                   html.Br(),
                                                   html.Br(),
-                                                  dcc.Store(id='clusterBehaviorCount'),
-                                                  dcc.Store(id='behaviorMean'),
+                                                  dcc.Store(id='clusterBehaviorCount_k'),
+                                                  dcc.Store(id='behaviorMean_k'),
                                                   html.Div(id='clusterBarPlotResult')
 #                                                   html.Div(style={'display':'flex',
 #                                                                   'padding':'10px',
@@ -110,6 +110,8 @@ app.layout= html.Div([
                                                   dcc.Input(id='threshold', type='number', min=0, max=10, value=1, step=0.01),
                                                   html.Br(),
                                                   html.Br(),
+                                                  dcc.Store(id='clusterBehaviorCount_hk'),
+                                                  dcc.Store(id='behaviorMean_hk'),
                                                   html.Div(style={'text-align':'center'},
                                                            children=[dcc.Graph(id='dendrogram',style={'display': 'inline-block'})]),
                                                   html.Div(id='hkClusterBarPlotResult')
@@ -288,8 +290,8 @@ def update_elbowgraph(dataJ):
     [Output(component_id='clusterBarPlotResult',component_property='children'),
 #      Output(component_id='dataSummary',component_property='children'),
 #      Output(component_id='clusterSubj',component_property='children'),
-     Output(component_id='behaviorMean',component_property='data'),
-     Output(component_id='clusterBehaviorCount',component_property='data')],
+     Output(component_id='behaviorMean_k',component_property='data'),
+     Output(component_id='clusterBehaviorCount_k',component_property='data')],
     [Input(component_id='specifiedDataObject',component_property='data'),
      Input(component_id='kChoose',component_property='value')]
 )
@@ -416,7 +418,9 @@ def update_dendrogram(dataJ,threshold):
     return fig
 
 @app.callback(
-    Output(component_id='hkClusterBarPlotResult',component_property='children'),
+    [Output(component_id='hkClusterBarPlotResult',component_property='children'),
+     Output(component_id='behaviorMean_hk',component_property='data'),
+     Output(component_id='clusterBehaviorCount_hk',component_property='data')],
     [Input(component_id='specifiedDataObject',component_property='data'),
      Input(component_id='hkChoose',component_property='value')]
 )
@@ -510,7 +514,7 @@ def update_hkCluster(dataJ,hkChoose):
                                                          columns=[{"name": i, "id": i} for i in subjectInCluster.columns],data=subjectInCluster.to_dict('records'))))
 
     
-    return result_list
+    return result_list,behaviorMean,clusterBehaviorCount
 
 # @app.callback(Output(component_id=''),
 #               Input(component_id='compareCondition',component_property='value'))
@@ -608,23 +612,34 @@ def store_assigning_values(assign_p,assign_q,assign_r):
               [Input(component_id='compareCondition',component_property='value'),
                Input(component_id='method',component_property='value'),
                Input(component_id='lrtCluster',component_property='value'),
-               Input(component_id='behaviorMean',component_property='data'),
-               Input(component_id='clusterBehaviorCount',component_property='data'),
+               Input(component_id='behaviorMean_k',component_property='data'),
+               Input(component_id='clusterBehaviorCount_k',component_property='data'),
+               Input(component_id='behaviorMean_hk',component_property='data'),
+               Input(component_id='clusterBehaviorCount_hk',component_property='data'),
                Input(component_id='scenarioChoose',component_property='value')
                ])
-def update_scenario_bar_plot(compare_mode,method,cluster,behaviorMean,clusterBehaviorCount,scenario):
+def update_scenario_bar_plot(compare_mode,method,cluster,behaviorMean_k,clusterBehaviorCount_k,behaviorMean_hk,clusterBehaviorCount_hk,scenario):
+
     if scenario == 0:
         scenName = '> 0'
     elif scenario ==3:
         scenName = '= 0'
     else:
         scenName = '< 0'
-    clusterBarFig = go.Figure(data=[
-        go.Bar(name='buy', x = [scenName], y=[behaviorMean[cluster][scenario]]),
-        go.Bar(name='no trade', x = [scenName], y=[behaviorMean[cluster][scenario+1]]),
-        go.Bar(name='sell', x = [scenName], y=[behaviorMean[cluster][scenario+2]])
-    ])
-    clusterBarFig.update_layout(barmode='group', width=700, height=400)
+    if method == 'kmeans':
+        clusterBarFig = go.Figure(data=[
+            go.Bar(name='buy', x = [scenName], y=[behaviorMean_k[cluster][scenario]]),
+            go.Bar(name='no trade', x = [scenName], y=[behaviorMean_k[cluster][scenario+1]]),
+            go.Bar(name='sell', x = [scenName], y=[behaviorMean_k[cluster][scenario+2]])
+        ])
+        clusterBarFig.update_layout(barmode='group', width=700, height=400)
+    elif method == 'hkmeans':
+        clusterBarFig = go.Figure(data=[
+            go.Bar(name='buy', x = [scenName], y=[behaviorMean_hk[cluster][scenario]]),
+            go.Bar(name='no trade', x = [scenName], y=[behaviorMean_hk[cluster][scenario+1]]),
+            go.Bar(name='sell', x = [scenName], y=[behaviorMean_hk[cluster][scenario+2]])
+        ])
+        clusterBarFig.update_layout(barmode='group', width=700, height=400)        
     return clusterBarFig
 
 @app.callback([Output(component_id='lrtestBar',component_property='figure'),
@@ -632,15 +647,17 @@ def update_scenario_bar_plot(compare_mode,method,cluster,behaviorMean,clusterBeh
               [Input(component_id='compareCondition',component_property='value'),
                Input(component_id='method',component_property='value'),
                Input(component_id='lrtCluster',component_property='value'),
-               Input(component_id='behaviorMean',component_property='data'),
-               Input(component_id='clusterBehaviorCount',component_property='data'),
+               Input(component_id='behaviorMean_k',component_property='data'),
+               Input(component_id='clusterBehaviorCount_k',component_property='data'),
+               Input(component_id='behaviorMean_hk',component_property='data'),
+               Input(component_id='clusterBehaviorCount_hk',component_property='data'),
                Input(component_id='scenarioChoose',component_property='value'),
                Input(component_id='general_model',component_property='value'),
                Input(component_id='restrict_model',component_property='value'),
                Input(component_id='assignedValues',component_property='data')])
-def update_lrtest(compare_mode,method,cluster,behaviorMean,clusterBehaviorCount,scenario,gen_model,res_model,assignedValues):
+def update_lrtest(compare_mode,method,cluster,behaviorMean_k,clusterBehaviorCount_k,behaviorMean_hk,clusterBehaviorCount_hk,scenario,gen_model,res_model,assignedValues):
     ### page: likelihood ratio test
-    
+
     print(assignedValues)
     if gen_model =='typical(not given)':
         gen_par=()
@@ -677,8 +694,12 @@ def update_lrtest(compare_mode,method,cluster,behaviorMean,clusterBehaviorCount,
         res_par=(1,2,3)
         res_assignedValues = assignedValues
     scenario = int(scenario)
-    general = toLikelihood(behaviorMean[cluster][scenario:scenario+3], count = clusterBehaviorCount[cluster][scenario:scenario+3], parameterChoose=gen_par, assignedValue = None)
-    restrict = toLikelihood(behaviorMean[cluster][scenario:scenario+3], count = clusterBehaviorCount[cluster][scenario:scenario+3], parameterChoose=res_par, assignedValue = res_assignedValues)
+    if method == 'kmeans': 
+        general = toLikelihood(behaviorMean_k[cluster][scenario:scenario+3], count = clusterBehaviorCount_k[cluster][scenario:scenario+3], parameterChoose=gen_par, assignedValue = None)
+        restrict = toLikelihood(behaviorMean_k[cluster][scenario:scenario+3], count = clusterBehaviorCount_k[cluster][scenario:scenario+3], parameterChoose=res_par, assignedValue = res_assignedValues)
+    elif method =='hkmeans':
+        general = toLikelihood(behaviorMean_hk[cluster][scenario:scenario+3], count = clusterBehaviorCount_hk[cluster][scenario:scenario+3], parameterChoose=gen_par, assignedValue = None)
+        restrict = toLikelihood(behaviorMean_hk[cluster][scenario:scenario+3], count = clusterBehaviorCount_hk[cluster][scenario:scenario+3], parameterChoose=res_par, assignedValue = res_assignedValues)
     
     estimatedBarFig = go.Figure(data=[
         go.Bar(name='general model', x=['buy','no trade','sell'], y=general.estimatedParameter),
@@ -687,7 +708,15 @@ def update_lrtest(compare_mode,method,cluster,behaviorMean,clusterBehaviorCount,
     estimatedBarFig.update_layout(barmode='group', width=700, height=400)    
     
     test_G,test_p = likelihood_ratio_test(general,restrict)
-    return estimatedBarFig,'p value={:.5f}'.format(test_p)
+    if test_p <= 0.001:
+        sig = '***'
+    elif test_p <= 0.01:
+        sig = '**'
+    elif test_p <= 0.05:
+        sig = '*'
+    else:
+        sig = 'not significant'
+    return estimatedBarFig,'significance: '+sig
 
 if __name__ == "__main__":
     app.run_server(debug=True, use_reloader=False)

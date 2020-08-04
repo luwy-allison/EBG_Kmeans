@@ -44,6 +44,7 @@ def generate_model_parameter(parameterChoose=(), correspondingRatio=[], count=[]
         else:
             print("error")
         negtiveLogLikelihood = temp_estimate.fun
+        print(negtiveLogLikelihood)
         print("finish")        
 
     elif len(parameterChoose) == 1: ## parameterChoose為給定的參數 
@@ -129,7 +130,7 @@ def likelihood_ratio_test(alternative_hypothesis, null_hypothesis, df=0):
 #  modeltype: typical(沒有任何條件)/equal(任兩個參數相等)/assigned(指定某個參數)
 def negloglikelihood(prob, modeltype = "typical", data = [], parameterChoose = None, assignedValue=None):
     data_=np.array(data)
-    print(prob)
+    # print(prob)
     prob_ = np.zeros(3)
 
     if modeltype == "typical":
@@ -151,7 +152,7 @@ def negloglikelihood(prob, modeltype = "typical", data = [], parameterChoose = N
             
     elif modeltype == "equal":
         decidedP = (1-prob)/2
-        print(decidedP)
+        # print(decidedP)
         for i in range(0,3):
             if i in parameterChoose:
                 prob_[i]=decidedP
@@ -159,7 +160,7 @@ def negloglikelihood(prob, modeltype = "typical", data = [], parameterChoose = N
                 prob_[i]=prob
     elif modeltype == "assigned":
         prob_[parameterChoose] = assignedValue
-        print(prob_)
+        # print(prob_)
         if parameterChoose == (0,): ## 指定 p
             prob_[1] = prob  ## 變動 q,相依自動產生 r
             prob_[2] = 1-prob_[0]-prob_[1]
@@ -169,11 +170,11 @@ def negloglikelihood(prob, modeltype = "typical", data = [], parameterChoose = N
         elif parameterChoose == (2,): ## 指定 r
             prob_[0] = prob ## 變動 p, 相依自動產生 q
             prob_[1] = 1-prob_[0]-prob_[2]
-        print(prob_)
+        # print(prob_)
         
     else:
         print("modeltype not support!")
-    print(prob_)
+    # print(prob_)
     negloglikelihood = -(data_[0:3] * np.log(prob_)).sum()
     
     return negloglikelihood
