@@ -186,11 +186,11 @@ app.layout= html.Div([
                                                                html.Div(id = 'assign_div',style={'text-align':'left'},
                                                                         children = [
                                                                             html.Div(id = 'assign_p_div', style = {'display':'none'},
-                                                                                     children = ['buy = ', dcc.Input(id = 'assign_p', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
+                                                                                     children = ['buy = ', dcc.Input(id = 'assign_p', type = 'number', min = 0, max = 1, step = 0.01, value = None),html.Br(),html.Br()]),
                                                                             html.Div(id = 'assign_q_div',style = {'display':'none'},
-                                                                                     children = ['no trade = ', dcc.Input(id = 'assign_q', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()]),
+                                                                                     children = ['no trade = ', dcc.Input(id = 'assign_q', type = 'number', min = 0, max = 1, step = 0.01, value = None),html.Br(),html.Br()]),
                                                                             html.Div(id = 'assign_r_div', style = {'display':'none'},
-                                                                                     children=['sell = ', dcc.Input(id = 'assign_r', type = 'number', min = 0, max = 1, step = 0.1, value = None),html.Br(),html.Br()])
+                                                                                     children=['sell = ', dcc.Input(id = 'assign_r', type = 'number', min = 0, max = 1, step = 0.01, value = None),html.Br(),html.Br()])
                                                                         ]),
                                                                dcc.Store(id='assignedValues')
                                                                

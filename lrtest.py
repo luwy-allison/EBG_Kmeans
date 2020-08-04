@@ -43,7 +43,8 @@ def generate_model_parameter(parameterChoose=(), correspondingRatio=[], count=[]
             temp_parameter.insert(2,paste)
         else:
             print("error")
-        negtiveLogLikelihood = temp_estimate.fun
+        # negtiveLogLikelihood = temp_estimate.fun
+        negtiveLogLikelihood = negloglikelihood(temp_parameter, "typical", count)
         print(negtiveLogLikelihood)
         print("finish")        
 
@@ -74,7 +75,8 @@ def generate_model_parameter(parameterChoose=(), correspondingRatio=[], count=[]
             print("error")
         print(temp_parameter)
         # gen_loglikelihood=negloglikelihood(gen_estimated, "typical", countN)
-        negtiveLogLikelihood = temp_estimate.fun
+        # negtiveLogLikelihood = temp_estimate.fun
+        negtiveLogLikelihood = negloglikelihood(temp_parameter, "typical", count)
         print(negtiveLogLikelihood)
         print("finish")        
 
@@ -97,7 +99,8 @@ def generate_model_parameter(parameterChoose=(), correspondingRatio=[], count=[]
             # print("error")
         print(temp_parameter)
 #         nloglikelihood=negloglikelihood(temp_estimate, "typical", countN)
-        negtiveLogLikelihood = temp_estimate.fun
+        # negtiveLogLikelihood = temp_estimate.fun
+        negtiveLogLikelihood = negloglikelihood(temp_parameter, "typical", count)
         print(negtiveLogLikelihood)
         print("finish")
     else:
@@ -174,7 +177,7 @@ def negloglikelihood(prob, modeltype = "typical", data = [], parameterChoose = N
         
     else:
         print("modeltype not support!")
-    # print(prob_)
+    print(prob_)
     negloglikelihood = -(data_[0:3] * np.log(prob_)).sum()
     
     return negloglikelihood
